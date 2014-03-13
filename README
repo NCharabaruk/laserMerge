@@ -1,0 +1,7 @@
+This package is to convert the scans from two laser range finders into the frame of a single virtual sensor in order to have the ROS gmapping package take in the data from both sensors.
+
+laserMergeOriginal.cpp - The original file. This opened and then immediately exited.
+
+laserMergeUpdate1 - Created classes and an object in order to get the package to run and not immediately shut down. Builds with catkin_make, but results in a segmentation fault when run.
+
+laserMerge.cpp - The current iteration. Changed arrays into vectors. Still getting a segmentation fault.
