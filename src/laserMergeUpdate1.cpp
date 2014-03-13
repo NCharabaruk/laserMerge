@@ -5,9 +5,6 @@
 #include "sensor_msgs/LaserScan.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
-#include <vector>
-
-using namespace std;
 
 class mergeScans
 {
@@ -24,16 +21,16 @@ public:
 		sensor_msgs::LaserScan newScan;
 
 		int numPoints = (msg->angle_max - msg->angle_min) / msg->angle_increment;
-		vector<float> newDist; //new distances
-		vector<float> dist; //old distances
-		vector<float> theta_p; //new angles
-		vector<float> theta; //old angles
+		float newDist[540] = { 0 }; //540 = (max_angle(2.356 rad) - min_angle(-2.356 rad))/angle_increment(8.726e-3 rad), new distances
+		float dist[540] = { 0 }; //old distances
+		double theta_p[540] = { 0 }; //new angles
+		double theta[540] = { 0 }; //old angles
 
 		//populate arrays to hold the original angles and their assiciated distances
 		for (int iii = 0; iii < numPoints; iii++)
 		{
-			theta.push_back(((msg->angle_max - msg->angle_max) / msg->angle_increment) * iii + msg->angle_min);
-			dist.push_back(msg->ranges[iii]);
+			theta[iii] = ((msg->angle_max - msg->angle_max) / msg->angle_increment) * iii + msg->angle_min;
+			dist[iii] = msg->ranges[iii];
 		}
 
 		//calculate new angles and distances
@@ -41,53 +38,53 @@ public:
 		{
 			if (theta[jjj] < -M_PI / 2)
 			{
-				float theta_n = M_PI + theta[jjj];
-				float x = dist[jjj] * sin(theta_n);
-				float y = dist[jjj] * cos(theta_n);
-				float dy = y - 0.333;
+				double theta_n = M_PI + theta[jjj];
+				double x = dist[jjj] * sin(theta_n);
+				double y = dist[jjj] * cos(theta_n);
+				double dy = y - 0.333;
 
 				if (dy < 0)
 				{
 					dy = dy * -1;
-					theta_p.push_back(atan(x / dy));
+					theta_p[jjj] = atan(x / dy);
 				}
 				else
 				{
-					theta_p.push_back(atan(x / dy) - M_PI);
+					theta_p[jjj] = atan(x / dy) - M_PI;
 				}
 
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
 			}
 			else if (theta[jjj] > M_PI / 2)
 			{
-				float theta_n = M_PI - theta[jjj];
-				float x = dist[jjj] * sin(theta_n);
-				float y = dist[jjj] * cos(theta_n);
-				float dy = y - 0.333;
+				double theta_n = M_PI - theta[jjj];
+				double x = dist[jjj] * sin(theta_n);
+				double y = dist[jjj] * cos(theta_n);
+				double dy = y - 0.333;
 	
 				if (dy < 0)
 				{
 					dy = dy * -1;
-					theta_p.push_back(atan(x / dy));
+					theta_p[jjj] = atan(x / dy);
 				}
 				else
 				{
-					theta_p.push_back(M_PI - atan(x / dy));
+					theta_p[jjj] = M_PI - atan(x / dy);
 				}
 
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
 			}
 			else
 			{
-				float x = dist[jjj] * sin(theta[jjj]);
-				float y = dist[jjj] * cos(theta[jjj]);
-				float dy = y + 0.333;
-				theta_p.push_back(atan(x / dy));
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				double x = dist[jjj] * sin(theta[jjj]);
+				double y = dist[jjj] * cos(theta[jjj]);
+				double dy = y + 0.333;
+				theta_p[jjj] = atan(x / dy);
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
 			}
 		}
 
-		float newAngleIncr = (theta_p.end() - theta_p.begin()) / theta_p.size();
+		double newAngleIncr = (theta[numPoints - 1] - theta[0]) / numPoints;
 
 		newScan.header.stamp = msg->header.stamp;
 		newScan.header.frame_id = "virtual_laser";
@@ -100,7 +97,7 @@ public:
 		newScan.range_max = msg->range_max;
 		newScan.intensities = msg->intensities;
 
-		for (int kkk = 0; kkk < newDist.size(); kkk++)
+		for (int kkk = 0; kkk < numPoints; kkk++)
 		{
 			newScan.ranges[kkk] = newDist[kkk];
 		}
@@ -112,17 +109,17 @@ public:
 	{
 		sensor_msgs::LaserScan newScan;
 
-		int numPoints = sizeof(msg->ranges) / sizeof(msg->ranges[0]); //number of elements in the ranges array
-		vector<float> newDist; //new distances
-		vector<float> dist; //old distances
-		vector<float> theta_p; //new angles
-		vector<float> theta; //old angles
+		int numPoints = (msg->angle_max - msg->angle_min) / msg->angle_increment;
+		float newDist[540] = { 0 }; //540 = (max_angle(2.356 rad) - min_angle(-2.356 rad))/angle_increment(8.726e-3 rad), new distances
+		float dist[540] = { 0 }; //old distances
+		double theta_p[540] = { 0 }; //new angles
+		double theta[540] = { 0 }; //old angles
 
 		//populate arrays to hold the original angles and their assiciated distances
 		for (int iii = 0; iii < numPoints; iii++)
 		{
-			theta.push_back(((msg->angle_max - msg->angle_max) / msg->angle_increment) * iii + msg->angle_min);
-			dist.push_back(msg->ranges[iii]);
+			theta[iii] = ((msg->angle_max - msg->angle_max) / msg->angle_increment) * iii + msg->angle_min;
+			dist[iii] = msg->ranges[iii];
 		}
 
 		//calculate new angles and distances
@@ -130,53 +127,62 @@ public:
 		{
 			if (theta[jjj] < -M_PI / 2)
 			{
-				float theta_n = M_PI + theta[jjj];
-				float x = dist[jjj] * sin(theta_n);
-				float y = dist[jjj] * cos(theta_n);
-				float dy = y - 0.333;
+				double theta_n = M_PI + theta[jjj];
+				double x = dist[jjj] * sin(theta_n);
+				double y = dist[jjj] * cos(theta_n);
+				double dy = y - 0.333;
 
 				if (dy < 0)
 				{
 					dy = dy * -1;
-					theta_p.push_back(atan(x / dy));
+					theta_p[jjj] = atan(x / dy);
 				}
 				else
 				{
-					theta_p.push_back(atan(x / dy) - M_PI);
+					theta_p[jjj] = atan(x / dy) - M_PI;
 				}
 
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
 			}
 			else if (theta[jjj] > M_PI / 2)
 			{
-				float theta_n = M_PI - theta[jjj];
-				float x = dist[jjj] * sin(theta_n);
-				float y = dist[jjj] * cos(theta_n);
-				float dy = y - 0.333;
+				double theta_n = M_PI - theta[jjj];
+				double x = dist[jjj] * sin(theta_n);
+				double y = dist[jjj] * cos(theta_n);
+				double dy = y - 0.333;
 	
 				if (dy < 0)
 				{
 					dy = dy * -1;
-					theta_p.push_back(atan(x / dy));
+					theta_p[jjj] = atan(x / dy);
 				}
 				else
 				{
-					theta_p.push_back(M_PI - atan(x / dy));
+					theta_p[jjj] = M_PI - atan(x / dy);
 				}
 
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
 			}
 			else
 			{
-				float x = dist[jjj] * sin(theta[jjj]);
-				float y = dist[jjj] * cos(theta[jjj]);
-				float dy = y + 0.333;
-				theta_p.push_back(atan(x / dy));
-				newDist.push_back(sqrt((x * x) + (dy * dy)));
+				double x = dist[jjj] * sin(theta[jjj]);
+				double y = dist[jjj] * cos(theta[jjj]);
+				double dy = y + 0.333;
+				theta_p[jjj] = atan(x / dy);
+				newDist[jjj] = sqrt((x * x) + (dy * dy));
+			}
+
+			if (theta_p[jjj] <= 0)
+			{
+				theta_p[jjj] += M_PI;
+			}
+			else
+			{
+				theta_p[jjj] -= M_PI;
 			}
 		}
 
-		float newAngleIncr = (theta_p.end() - theta_p.begin()) / theta_p.size();
+		double newAngleIncr = (theta[numPoints - 1] - theta[0]) / numPoints;
 
 		newScan.header.stamp = msg->header.stamp;
 		newScan.header.frame_id = "virtual_laser";
